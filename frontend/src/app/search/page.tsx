@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/Card"
 import { Badge } from "@/components/ui/Badge"
-import { Search, SlidersHorizontal, Clock, Bookmark } from "lucide-react"
+import { Search, SlidersHorizontal, Clock } from "lucide-react"
 import { createClient } from "@/utils/supabase/server"
 import { BookmarkButton } from "@/components/ui/BookmarkButton"
 
@@ -38,7 +38,7 @@ export default async function SearchResultsPage({
     supabaseQuery = supabaseQuery.eq('categories.name', category)
   }
 
-  const { data: results, error } = await supabaseQuery.limit(20)
+  const { data: results } = await supabaseQuery.limit(20)
   const displayResults = results || []
 
   // Fetch current user bookmarks to pass initial state
@@ -50,7 +50,7 @@ export default async function SearchResultsPage({
       .select('article_id')
       .eq('user_id', user.id)
     if (bookmarks) {
-      bookmarkedIds = new Set(bookmarks.map((b: any) => b.article_id))
+      bookmarkedIds = new Set(bookmarks.map((b: { article_id: string }) => b.article_id))
     }
   }
 
@@ -129,9 +129,10 @@ export default async function SearchResultsPage({
           </div>
 
           <div className="space-y-4">
-            {displayResults.map((result: any) => (
+            {displayResults.map((result: Record<string, unknown> & { id: string; title: string; summary: string; image_url: string; published_at: string; sources: { name: string } | null; categories: { name: string } | null }) => (
               <Card key={result.id} className="flex flex-col sm:flex-row overflow-hidden hover:shadow-md transition-shadow group cursor-pointer">
                 <div className="sm:w-64 bg-light-gray flex-shrink-0 aspect-video sm:aspect-auto relative overflow-hidden">
+                   {/* eslint-disable-next-line @next/next/no-img-element */}
                    <img 
                     src={result.image_url || `https://images.unsplash.com/photo-${1500000000000 + (Math.random() * 100)}?auto=format&fit=crop&w=600&q=80`} 
                     alt="Thumbnail"

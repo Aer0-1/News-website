@@ -1,7 +1,7 @@
 import { login, signup } from './actions'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 

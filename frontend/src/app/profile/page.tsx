@@ -134,7 +134,7 @@ export default async function ProfilePage({
             </div>
             {savedArticles.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {savedArticles.map((article: any) => (
+                {savedArticles.map((article: Record<string, unknown> & { id: string; title: string; category: string; source: string; savedDate: string }) => (
                   <Link key={article.id} href={`/article/${article.id}`}>
                     <Card className="flex flex-col h-full group cursor-pointer hover:border-primary-blue/30">
                       <CardHeader>
@@ -179,7 +179,7 @@ export default async function ProfilePage({
               </Button>
             </div>
             <div className="space-y-4">
-              {historyArticles.length > 0 ? historyArticles.map((article: any) => (
+              {historyArticles.length > 0 ? historyArticles.map((article: Record<string, unknown> & { id: string; title: string; source: string; readDate: string; duration: string }) => (
                 <Link key={`${article.id}-${article.readDate}`} href={`/article/${article.id}`}>
                   <div className="flex items-center justify-between p-4 bg-white border rounded-xl hover:shadow-sm cursor-pointer transition-shadow">
                     <div className="flex items-center space-x-4">

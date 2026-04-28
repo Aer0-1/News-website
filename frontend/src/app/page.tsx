@@ -1,6 +1,7 @@
 import * as React from "react"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/Card"
-import { Clock, Bookmark } from "lucide-react"
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/Card"
+import { Badge } from "@/components/ui/Badge"
+import { Clock } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { BookmarkButton } from "@/components/ui/BookmarkButton"
 import { createClient } from "@/utils/supabase/server"
@@ -8,7 +9,7 @@ import { createClient } from "@/utils/supabase/server"
 export default async function HomePage() {
   const supabase = createClient()
   
-  const { data: articles, error } = await supabase
+  const { data: articles } = await supabase
     .from('articles')
     .select(`
       id,
@@ -31,7 +32,7 @@ export default async function HomePage() {
       .select('article_id')
       .eq('user_id', user.id)
     if (bookmarks) {
-      bookmarkedIds = new Set(bookmarks.map((b: any) => b.article_id))
+      bookmarkedIds = new Set(bookmarks.map((b: { article_id: string }) => b.article_id))
     }
   }
 
@@ -51,6 +52,7 @@ export default async function HomePage() {
           <div className="group relative rounded-2xl overflow-hidden border bg-white shadow-sm transition-all hover:shadow-md cursor-pointer">
             <div className="aspect-[21/9] w-full bg-light-gray relative overflow-hidden">
               {/* Using a regular img tag for mock purposes, should be next/image in prod */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
                 src={featuredArticle.image_url || `https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1200`} 
                 alt={featuredArticle.title}
@@ -89,11 +91,12 @@ export default async function HomePage() {
         <section className="lg:col-span-2 space-y-6">
           <h2 className="text-2xl font-bold tracking-tight border-b pb-2">Latest News</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {latestArticles.map((article: any) => (
+            {latestArticles.map((article: Record<string, unknown> & { id: string; title: string; summary: string; image_url: string; published_at: string; sources: { name: string } | null; categories: { name: string } | null }) => (
               <Card key={article.id} className="flex flex-col h-full cursor-pointer group">
                 <div className="aspect-video w-full bg-light-gray overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
-                    src={article.image_url || `https://images.unsplash.com/photo-${1500000000000 + (Math.random() * 100)}?auto=format&fit=crop&w=600&q=80`} 
+                    src={article.image_url || `https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80`} 
                     alt="Article thumbnail"
                     className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
                   />
@@ -135,7 +138,7 @@ export default async function HomePage() {
             Trending Now
           </h2>
           <div className="flex flex-col space-y-4">
-            {trendingArticles.map((article: any, index: number) => (
+            {trendingArticles.map((article: Record<string, unknown> & { id: string; title: string; published_at: string; sources: { name: string } | null }, index: number) => (
               <div key={article.id} className="flex space-x-4 group cursor-pointer">
                 <div className="text-3xl font-bold text-light-gray group-hover:text-primary-blue/20 transition-colors">
                   0{index + 1}

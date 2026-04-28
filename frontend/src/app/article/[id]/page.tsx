@@ -91,6 +91,7 @@ export default async function ArticleDetailPage({ params }: { params: { id: stri
         </header>
 
         <figure className="mb-10 rounded-2xl overflow-hidden shadow-sm border">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
             src={article.image_url || `https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1200`} 
             alt={article.title}
