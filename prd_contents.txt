@@ -1,0 +1,366 @@
+--- Design_PRD.docx ---
+Design PRD
+News Website Aggregation Platform
+1. Design Vision
+Create a clean, intuitive news aggregation platform that presents diverse content in an organized, accessible manner. The design prioritizes content discovery, readability, and user control over their news consumption experience.
+Design Principles:
+Content First: Prioritize article content and readability
+Accessibility: WCAG 2.1 AA compliance
+Clarity: Clear hierarchy and information organization
+Control: Users control their news sources and preferences
+Performance: Fast loading and smooth interactions
+2. Color System
+2.1 Primary Palette
+Color
+Hex
+RGB
+Usage
+Primary Blue
+#1F4E78
+31, 78, 120
+Headers, links, actions
+Light Gray
+#F5F5F5
+245, 245, 245
+Background, cards
+Red
+#DC3545
+220, 53, 69
+Errors, alerts
+Green
+#28A745
+40, 167, 69
+Success, positive actions
+3. Typography
+Element
+Font
+Size
+Weight
+Line Height
+Heading 1
+Inter
+32px
+700
+1.2
+Heading 2
+Inter
+24px
+700
+1.3
+Body
+Inter
+16px
+400
+1.5
+Caption
+Inter
+12px
+400
+1.4
+4. Component Library
+4.1 Core Components
+Button
+Variants: Primary, Secondary, Tertiary, Danger
+States: Default, Hover, Active, Disabled, Loading
+Card
+Contains article summary or content preview
+Includes image, title, excerpt, source, date
+Interactive hover states and animations
+Input Field
+Text, search, filter variants
+Label, placeholder, error states
+Navigation
+Header navigation with logo, search, user menu
+Sidebar for category filters and sources
+Badge
+Category badges with color coding
+Source indicators and trending badges
+5. Layout & Grid System
+12-column grid system
+8px base spacing unit
+Responsive breakpoints: 320px, 768px, 1024px, 1440px
+Max content width: 1200px
+6. Key Screen Designs
+6.1 Homepage
+Grid layout showcasing trending, latest, and curated articles
+Featured article hero section (top, full width)
+Trending articles carousel
+Article grid with infinite scroll
+6.2 Search Results
+Search bar at top with filters
+Filter sidebar: Date range, sources, categories
+Results grid with sort options (relevance, date)
+Result count and pagination
+6.3 Article Detail
+Hero image or feature media
+Article headline, metadata (date, source, author)
+Action buttons: Bookmark, Share, Read Original
+Article body with optimized typography
+Related articles section at bottom
+6.4 User Profile
+Profile header with avatar and basic info
+Tabs: Bookmarks, Reading History, Preferences
+Source subscriptions management
+7. Accessibility Guidelines
+WCAG 2.1 Level AA compliance
+Color contrast ratio ≥4.5:1 for text
+Keyboard navigation support
+Screen reader optimized with proper ARIA labels
+Focus indicators for interactive elements
+Alt text for all images
+Readable font sizes (minimum 16px body text)
+
+==================================================
+
+--- Taskflow_PRD (1).docx ---
+Taskflow PRD
+News Website Aggregation Platform
+1. User Personas
+1.1 The Busy Professional
+Sarah, 35, works in finance and reads news during commute
+Needs: Quick summaries of important stories
+Goals: Stay informed without spending hours reading
+Behavior: Uses mobile, prefers financial and tech news
+1.2 The News Enthusiast
+James, 42, retired and deeply interested in global affairs
+Needs: Deep-dive articles from diverse sources
+Goals: Curate personalized news from multiple countries
+Behavior: Uses desktop, reads entire articles, follows specific topics
+1.3 The Content Curator
+Maria, 28, social media manager monitoring trends
+Needs: Save and share trending stories
+Goals: Build collections of articles for clients
+Behavior: Bookmarks frequently, uses search features, shares content
+2. Core User Journeys
+2.1 Discovery & Browsing
+User opens app/website
+Homepage displays curated articles in personalized order
+User browses trending, latest, and recommended sections
+User clicks article card to view details
+Article detail page loads with full content
+User can bookmark, share, or return to browsing
+2.2 Search & Filtering
+User clicks search bar
+User types search query
+System shows search suggestions and autocomplete
+User submits search or selects suggestion
+Search results page displays matching articles
+User applies filters by date, source, category
+Results update in real-time
+2.3 Personalization
+User accesses preferences/settings
+User selects preferred news sources
+User selects interested categories
+User adjusts content frequency preferences
+System saves preferences
+Homepage and recommendations update accordingly
+3. Detailed Task Flows
+3.1 Sign Up & Onboarding
+Path: Home → Sign Up Button → Registration Form
+Key Steps:
+User clicks 'Sign Up' on landing page
+Modal or form appears with email/password fields
+User enters email and creates password
+System validates and sends verification email
+User confirms email
+Onboarding wizard: Select interests and sources
+User redirected to personalized homepage
+3.2 Reading Article
+Path: Homepage → Article Card → Article Detail Page
+Key States:
+Card hover: Slight elevation, read preview visible
+Click: Page transitions to article detail
+Loading: Skeleton content shown briefly
+Loaded: Article displays with readable typography
+Bookmark button: Toggle bookmark state
+Share button: Copy link or open share menu
+3.3 Saving Articles
+Path: Article Detail → Bookmark Button → Saved Collection
+Interactions:
+User clicks bookmark icon
+Icon animates (fills in)
+Toast notification: 'Article saved'
+User accesses bookmarks via profile menu
+Bookmarks page shows all saved articles with sort options
+4. Key State Transitions
+Component
+Initial State
+Trigger
+Final State
+Bookmark Button
+Unfilled
+Click
+Filled + saved
+Search Results
+Loading
+Results loaded
+Results displayed
+Filter Panel
+Default
+Select filter
+Applied, results update
+5. Error Handling & Edge Cases
+5.1 Network Errors
+Scenario: User loses connection while loading articles
+Show error toast: 'Unable to load. Retrying...'
+Auto-retry after 3 seconds
+If persistent: Show 'Offline mode' with cached articles
+Retry button with manual refresh option
+5.2 Empty States
+Scenario: No search results or empty bookmarks
+Show friendly empty state illustration
+Provide helpful message and suggested actions
+For bookmarks: 'No bookmarks yet. Save your first article!'
+5.3 Authentication Errors
+Scenario: Login fails or session expires
+Show error message: 'Invalid credentials'
+Session expired: Redirect to login with prompt
+Provide 'Forgot password' link
+6. Interaction Patterns
+6.1 Loading States
+Skeleton loading for article cards
+Shimmer effect for perceived performance
+Progress bar for full page loads
+6.2 Feedback
+Toast notifications for actions (save, share, delete)
+Micro-interactions on hover/click
+Confirmation dialogs for destructive actions
+6.3 Animations
+Page transitions: Fade or slide (200ms)
+Button interactions: Color shift and scale (100ms)
+Bookmarks: Heart fill animation on save
+7. Device-Specific Taskflows
+7.1 Mobile
+Bottom navigation for main sections
+Vertical scrolling as primary interaction
+Tap-friendly buttons (minimum 44x44px)
+Filters via modal or slide-out panel
+7.2 Tablet
+Two-column layout (list + detail view)
+Sidebar filters visible by default
+Touch and keyboard/mouse support
+7.3 Desktop
+Multi-column layout with sidebar
+Keyboard shortcuts for power users
+Mouse hover states for rich feedback
+
+==================================================
+
+--- Tech_Stack_Database_PRD.docx ---
+Tech Stack & Database PRD
+News Website Aggregation Platform
+1. Executive Summary
+This document outlines the technical architecture, technology stack, and database design for a comprehensive news aggregation platform. The system will fetch, process, and serve diverse news content from global sources through a scalable, performant web application.
+Key Technical Goals:
+High availability and 99.9% uptime
+Sub-second article search and retrieval
+Real-time news ingestion from 50+ global sources
+Horizontal scalability for 10M+ daily active users
+Enterprise-grade security and data privacy
+2. Architecture Overview
+2.1 High-Level Architecture
+Microservices Architecture with the following layers:
+Client Layer: Web & Mobile Applications
+API Gateway: Request routing and authentication
+Service Layer: Microservices for specific functions
+Data Layer: Multiple databases optimized for different needs
+Cache Layer: In-memory caching for performance
+Message Queue: Asynchronous event processing
+3. Frontend Stack
+Component
+Technology
+Rationale
+Framework
+Next.js 14
+SSR, SSG, ISR for SEO optimization
+Language
+TypeScript
+Type safety and developer experience
+UI Library
+React 18 + TailwindCSS
+Component reusability and rapid styling
+State Management
+Zustand
+Lightweight, intuitive state container
+Data Fetching
+TanStack Query
+Server state management, caching
+4. Backend Stack
+4.1 Core Services
+Service
+Technology
+Purpose
+API Gateway
+Node.js + Express
+Request routing, auth, rate limiting
+Article Service
+Node.js + NestJS
+CRUD operations, search, filtering
+Ingestion Service
+Python + Celery
+Fetch, parse, and index articles
+User Service
+Node.js + Express
+Authentication, profiles, preferences
+5. Database Design
+5.1 Primary Database: PostgreSQL
+PostgreSQL serves as the primary relational database for transactional data with JSONB support for flexible content storage.
+Core Tables
+users: User accounts, authentication, preferences
+articles: Article content, metadata, timestamps
+sources: News source configurations and credentials
+categories: Article categories and tags
+bookmarks: User-saved articles
+reading_history: Track user reading activity
+5.2 Search Database: Elasticsearch
+Elasticsearch provides full-text search capabilities with sub-second query performance across millions of articles.
+Index per article with analyzers for multiple languages
+Faceted search support for categories, sources, dates
+Relevance ranking based on recency and engagement
+5.3 Cache Layer: Redis
+Session management and user preferences
+Popular articles and trending topics cache
+Rate limiting counters
+API response caching with TTL
+6. Infrastructure & Deployment
+Layer
+Technology
+Details
+Containerization
+Docker
+Container images for all services
+Orchestration
+Kubernetes (EKS/GKE)
+Auto-scaling, load balancing
+CDN
+CloudFlare or AWS CloudFront
+Global content delivery, DDoS protection
+Monitoring
+Prometheus + Grafana
+Metrics, dashboards, alerting
+Logging
+ELK Stack / Datadog
+Centralized logging and debugging
+7. API Design
+7.1 REST API Conventions
+Base URL: https://api.newsapp.com/v1
+Authentication: JWT tokens with 24-hour expiry
+Rate Limiting: 1000 requests/hour per user
+Response Format: JSON with consistent error handling
+7.2 Key Endpoints
+GET /articles - List articles with pagination and filters
+GET /articles/{id} - Get article details
+GET /articles/search - Full-text search articles
+POST /bookmarks - Save article for later
+GET /sources - List available news sources
+GET /categories - List article categories
+8. Security Considerations
+SSL/TLS encryption for all data in transit
+Database encryption at rest
+Input validation and SQL injection prevention
+CORS policies for cross-origin requests
+Regular security audits and penetration testing
+GDPR and data privacy compliance
+
+==================================================
+

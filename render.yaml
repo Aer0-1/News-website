@@ -1,0 +1,13 @@
+services:
+  - type: worker
+    name: news-ingestion-worker
+    env: python
+    buildCommand: "cd ingestion-service && pip install -r requirements.txt && python -m textblob.download_corpora lite && python -c \"import nltk; nltk.download('punkt_tab')\""
+    startCommand: "cd ingestion-service && python rss_parser.py"
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: POLL_INTERVAL_SECONDS
+        value: 3600
