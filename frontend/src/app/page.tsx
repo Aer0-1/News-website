@@ -37,9 +37,9 @@ export default async function HomePage() {
   }
 
   // Use real data if available, fallback to empty arrays to prevent crashes before seed
-  const featuredArticle = articles && articles.length > 0 ? articles[0] : null;
-  const trendingArticles = articles && articles.length > 1 ? articles.slice(1, 4) : [];
-  const latestArticles = articles && articles.length > 4 ? articles.slice(4) : [];
+  const featuredArticle: any = articles && articles.length > 0 ? articles[0] : null;
+  const trendingArticles: any[] = articles && articles.length > 1 ? articles.slice(1, 4) : [];
+  const latestArticles: any[] = articles && articles.length > 4 ? articles.slice(4) : [];
   return (
     <div className="p-6 md:p-8 space-y-10 pb-20">
       
@@ -91,7 +91,7 @@ export default async function HomePage() {
         <section className="lg:col-span-2 space-y-6">
           <h2 className="text-2xl font-bold tracking-tight border-b pb-2">Latest News</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {latestArticles.map((article: Record<string, unknown> & { id: string; title: string; summary: string; image_url: string; published_at: string; sources: { name: string } | null; categories: { name: string } | null }) => (
+            {latestArticles.map((article: any) => (
               <Card key={article.id} className="flex flex-col h-full cursor-pointer group">
                 <div className="aspect-video w-full bg-light-gray overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -138,7 +138,7 @@ export default async function HomePage() {
             Trending Now
           </h2>
           <div className="flex flex-col space-y-4">
-            {trendingArticles.map((article: Record<string, unknown> & { id: string; title: string; published_at: string; sources: { name: string } | null }, index: number) => (
+            {trendingArticles.map((article: any, index: number) => (
               <div key={article.id} className="flex space-x-4 group cursor-pointer">
                 <div className="text-3xl font-bold text-light-gray group-hover:text-primary-blue/20 transition-colors">
                   0{index + 1}

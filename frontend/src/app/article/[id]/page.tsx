@@ -12,7 +12,7 @@ import { logReadingHistory } from "@/app/actions/history"
 export default async function ArticleDetailPage({ params }: { params: { id: string } }) {
   const supabase = createClient()
   
-  const { data: article, error } = await supabase
+  const { data: fetchedArticle, error } = await supabase
     .from('articles')
     .select(`
       *,
@@ -22,9 +22,11 @@ export default async function ArticleDetailPage({ params }: { params: { id: stri
     .eq('id', params.id)
     .single()
 
-  if (error || !article) {
+  if (error || !fetchedArticle) {
     notFound()
   }
+
+  const article: any = fetchedArticle;
 
   const isBookmarked = await checkIsBookmarked(article.id)
 

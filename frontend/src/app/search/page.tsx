@@ -39,7 +39,7 @@ export default async function SearchResultsPage({
   }
 
   const { data: results } = await supabaseQuery.limit(20)
-  const displayResults = results || []
+  const displayResults: any[] = results || []
 
   // Fetch current user bookmarks to pass initial state
   const { data: { user } } = await supabase.auth.getUser()
@@ -129,7 +129,7 @@ export default async function SearchResultsPage({
           </div>
 
           <div className="space-y-4">
-            {displayResults.map((result: Record<string, unknown> & { id: string; title: string; summary: string; image_url: string; published_at: string; sources: { name: string } | null; categories: { name: string } | null }) => (
+            {displayResults.map((result: any) => (
               <Card key={result.id} className="flex flex-col sm:flex-row overflow-hidden hover:shadow-md transition-shadow group cursor-pointer">
                 <div className="sm:w-64 bg-light-gray flex-shrink-0 aspect-video sm:aspect-auto relative overflow-hidden">
                    {/* eslint-disable-next-line @next/next/no-img-element */}
