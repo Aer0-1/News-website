@@ -8,8 +8,10 @@ import { ArrowLeft } from 'lucide-react'
 export default function LoginPage({
   searchParams,
 }: {
-  searchParams: { message: string }
+  searchParams: { message?: string; mode?: string }
 }) {
+  const isSignup = searchParams.mode === 'signup'
+
   return (
     <div className="flex-1 flex flex-col w-full px-8 sm:max-w-md justify-center gap-2 mx-auto min-h-[80vh]">
       <Link
@@ -22,17 +24,41 @@ export default function LoginPage({
 
       <Card className="w-full">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
-          <CardDescription className="text-center">Sign in to your account or create a new one.</CardDescription>
+          <CardTitle className="text-2xl font-bold text-center">
+            {isSignup ? 'Create Account' : 'Welcome Back'}
+          </CardTitle>
+          <CardDescription className="text-center">
+            {isSignup
+              ? 'Sign up for a new account to get started.'
+              : 'Sign in to your account to continue.'}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form className="flex-1 flex flex-col w-full justify-center gap-4 text-foreground">
+            
+            {/* Full Name — only visible during signup */}
+            {isSignup && (
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium" htmlFor="full_name">
+                  Full Name
+                </label>
+                <Input
+                  id="full_name"
+                  name="full_name"
+                  placeholder="Jane Doe"
+                  required
+                />
+              </div>
+            )}
+
             <div className="flex flex-col gap-1">
               <label className="text-sm font-medium" htmlFor="email">
                 Email
               </label>
               <Input
+                id="email"
                 name="email"
+                type="email"
                 placeholder="you@example.com"
                 required
               />
@@ -42,10 +68,12 @@ export default function LoginPage({
                 Password
               </label>
               <Input
+                id="password"
                 type="password"
                 name="password"
                 placeholder="••••••••"
                 required
+                minLength={6}
               />
             </div>
             
@@ -56,12 +84,31 @@ export default function LoginPage({
             )}
 
             <div className="flex flex-col gap-3 mt-4">
-              <Button formAction={login}>
-                Sign In
-              </Button>
-              <Button formAction={signup} variant="secondary">
-                Sign Up
-              </Button>
+              {isSignup ? (
+                <>
+                  <Button formAction={signup}>
+                    Create Account
+                  </Button>
+                  <p className="text-center text-sm text-foreground/60">
+                    Already have an account?{' '}
+                    <Link href="/login" className="text-primary-blue font-medium hover:underline">
+                      Sign In
+                    </Link>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Button formAction={login}>
+                    Sign In
+                  </Button>
+                  <p className="text-center text-sm text-foreground/60">
+                    Don&apos;t have an account?{' '}
+                    <Link href="/login?mode=signup" className="text-primary-blue font-medium hover:underline">
+                      Sign Up
+                    </Link>
+                  </p>
+                </>
+              )}
             </div>
           </form>
         </CardContent>

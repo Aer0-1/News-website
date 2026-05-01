@@ -8,6 +8,7 @@ import { notFound } from "next/navigation"
 import { BookmarkButton } from "@/components/ui/BookmarkButton"
 import { checkIsBookmarked } from "@/app/actions/bookmarks"
 import { logReadingHistory } from "@/app/actions/history"
+import { ArticleDetail, sanitizeHtml, calculateReadTime, getImageUrl, getName } from "@/lib/sanitize"
 
 export default async function ArticleDetailPage({ params }: { params: { id: string } }) {
   const supabase = createClient()
@@ -26,23 +27,34 @@ export default async function ArticleDetailPage({ params }: { params: { id: stri
     notFound()
   }
 
-  const article: any = fetchedArticle;
+  const article = fetchedArticle as ArticleDetail
 
   const isBookmarked = await checkIsBookmarked(article.id)
 
-  // Fire and forget history logging
-  logReadingHistory(article.id)
+  // Log reading history with error tracking
+  try {
+    await logReadingHistory(article.id)
+  } catch (err) {
+    console.error('Failed to log reading history:', err)
+  }
 
+  // Sentiment analysis — using static Tailwind classes (dynamic classes don't compile)
   let sentimentLabel = 'Neutral'
-  let sentimentColor = 'bg-gray-100 text-gray-700'
+  let sentimentClasses = 'bg-gray-100 text-gray-700'
   
   if (article.sentiment_score && article.sentiment_score > 0.1) {
     sentimentLabel = 'Positive'
-    sentimentColor = 'bg-green-100 text-green-700'
+    sentimentClasses = 'bg-green-100 text-green-700'
   } else if (article.sentiment_score && article.sentiment_score < -0.1) {
     sentimentLabel = 'Negative'
-    sentimentColor = 'bg-red-100 text-red-700'
+    sentimentClasses = 'bg-red-100 text-red-700'
   }
+
+  // Calculate read time from content
+  const readTime = calculateReadTime(article.content || article.summary)
+
+  // Sanitize HTML content for safe rendering
+  const safeContent = sanitizeHtml(article.content || `<p>${article.summary}</p>`)
 
   return (
     <article className="min-h-screen pb-20">
@@ -56,9 +68,9 @@ export default async function ArticleDetailPage({ params }: { params: { id: stri
         <header className="space-y-6 mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Badge className="bg-primary-blue text-white hover:bg-primary-blue/90">{article.categories?.name || 'News'}</Badge>
+              <Badge className="bg-primary-blue text-white hover:bg-primary-blue/90">{getName(article.categories) || 'News'}</Badge>
               {article.sentiment_score !== null && (
-                <Badge variant="outline" className={`${sentimentColor} border-transparent flex items-center gap-1 hover:${sentimentColor}`}>
+                <Badge variant="outline" className={`${sentimentClasses} border-transparent flex items-center gap-1`}>
                   <Sparkles className="h-3 w-3" />
                   {sentimentLabel} ({article.sentiment_score.toFixed(2)})
                 </Badge>
@@ -84,26 +96,27 @@ export default async function ArticleDetailPage({ params }: { params: { id: stri
               <span className="font-medium text-foreground">{article.author || 'Anonymous'}</span>
             </div>
             <span>•</span>
-            <span className="font-medium text-primary-blue">{article.sources?.name || 'Unknown'}</span>
+            <span className="font-medium text-primary-blue">{getName(article.sources) || 'Unknown'}</span>
             <span>•</span>
             <span>{new Date(article.published_at).toLocaleDateString()}</span>
             <span>•</span>
-            <span className="flex items-center"><Clock className="mr-1 h-3 w-3" /> 5 min read</span>
+            <span className="flex items-center"><Clock className="mr-1 h-3 w-3" /> {readTime}</span>
           </div>
         </header>
 
         <figure className="mb-10 rounded-2xl overflow-hidden shadow-sm border">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
-            src={article.image_url || `https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1200`} 
+            src={getImageUrl(article.image_url)} 
             alt={article.title}
+            loading="lazy"
             className="w-full h-auto max-h-[500px] object-cover"
           />
         </figure>
 
         <div 
           className="prose prose-lg md:prose-xl max-w-none prose-headings:font-bold prose-headings:text-primary-blue prose-p:text-foreground/80 prose-a:text-primary-blue prose-blockquote:border-primary-blue prose-blockquote:bg-light-gray prose-blockquote:p-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic prose-blockquote:font-medium"
-          dangerouslySetInnerHTML={{ __html: article.content || `<p>${article.summary}</p>` }}
+          dangerouslySetInnerHTML={{ __html: safeContent }}
         />
 
         <div className="mt-16 pt-8 border-t flex items-center justify-between">

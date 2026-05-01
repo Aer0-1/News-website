@@ -14,7 +14,7 @@ export function BookmarkButton({
 }: { 
   articleId: string
   initialIsBookmarked?: boolean
-  variant?: "primary" | "secondary" | "tertiary" | "outline" | "ghost"
+  variant?: "primary" | "secondary" | "tertiary" | "danger"
   showText?: boolean
 }) {
   const [isPending, startTransition] = useTransition()

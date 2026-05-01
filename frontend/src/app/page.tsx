@@ -5,11 +5,14 @@ import { Clock } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { BookmarkButton } from "@/components/ui/BookmarkButton"
 import { createClient } from "@/utils/supabase/server"
+import Link from "next/link"
+import { Article, getImageUrl, getName } from "@/lib/sanitize"
 
 export default async function HomePage() {
   const supabase = createClient()
   
-  const { data: articles } = await supabase
+  // Fetch articles with error handling
+  const { data: articles, error } = await supabase
     .from('articles')
     .select(`
       id,
@@ -22,6 +25,10 @@ export default async function HomePage() {
     `)
     .order('published_at', { ascending: false })
     .limit(10)
+
+  if (error) {
+    console.error('Error fetching articles:', error)
+  }
 
   // Fetch current user bookmarks to pass initial state
   const { data: { user } } = await supabase.auth.getUser()
@@ -37,9 +44,11 @@ export default async function HomePage() {
   }
 
   // Use real data if available, fallback to empty arrays to prevent crashes before seed
-  const featuredArticle: any = articles && articles.length > 0 ? articles[0] : null;
-  const trendingArticles: any[] = articles && articles.length > 1 ? articles.slice(1, 4) : [];
-  const latestArticles: any[] = articles && articles.length > 4 ? articles.slice(4) : [];
+  const typedArticles: Article[] = (articles as Article[]) || []
+  const featuredArticle: Article | null = typedArticles.length > 0 ? typedArticles[0] : null
+  const trendingArticles: Article[] = typedArticles.length > 1 ? typedArticles.slice(1, 4) : []
+  const latestArticles: Article[] = typedArticles.length > 4 ? typedArticles.slice(4) : []
+
   return (
     <div className="p-6 md:p-8 space-y-10 pb-20">
       
@@ -49,38 +58,40 @@ export default async function HomePage() {
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold tracking-tight text-foreground">Top Story</h2>
           </div>
-          <div className="group relative rounded-2xl overflow-hidden border bg-white shadow-sm transition-all hover:shadow-md cursor-pointer">
-            <div className="aspect-[21/9] w-full bg-light-gray relative overflow-hidden">
-              {/* Using a regular img tag for mock purposes, should be next/image in prod */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src={featuredArticle.image_url || `https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1200`} 
-                alt={featuredArticle.title}
-                className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              <div className="absolute bottom-0 left-0 p-6 md:p-8 space-y-3 w-full max-w-3xl">
-                <Badge className="bg-primary-blue border-transparent">{featuredArticle.categories?.name || 'News'}</Badge>
-                <h1 className="text-2xl md:text-4xl font-bold text-white leading-tight">
-                  {featuredArticle.title}
-                </h1>
-                <p className="text-gray-200 line-clamp-2 md:text-lg">
-                  {featuredArticle.summary}
-                </p>
-                <div className="flex items-center space-x-4 text-sm text-gray-300">
-                  <span className="font-semibold text-white">{featuredArticle.sources?.name || 'Unknown'}</span>
-                  <span className="flex items-center"><Clock className="mr-1 h-3 w-3" /> {new Date(featuredArticle.published_at).toLocaleDateString()}</span>
+          <Link href={`/article/${featuredArticle.id}`}>
+            <div className="group relative rounded-2xl overflow-hidden border bg-white shadow-sm transition-all hover:shadow-md cursor-pointer">
+              <div className="aspect-[21/9] w-full bg-light-gray relative overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src={getImageUrl(featuredArticle.image_url)} 
+                  alt={featuredArticle.title}
+                  loading="lazy"
+                  className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 p-6 md:p-8 space-y-3 w-full max-w-3xl">
+                  <Badge className="bg-primary-blue border-transparent">{getName(featuredArticle.categories) || 'News'}</Badge>
+                  <h1 className="text-2xl md:text-4xl font-bold text-white leading-tight">
+                    {featuredArticle.title}
+                  </h1>
+                  <p className="text-gray-200 line-clamp-2 md:text-lg">
+                    {featuredArticle.summary}
+                  </p>
+                  <div className="flex items-center space-x-4 text-sm text-gray-300">
+                    <span className="font-semibold text-white">{getName(featuredArticle.sources) || 'Unknown'}</span>
+                    <span className="flex items-center"><Clock className="mr-1 h-3 w-3" /> {new Date(featuredArticle.published_at).toLocaleDateString()}</span>
+                  </div>
+                </div>
+                <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <BookmarkButton 
+                    articleId={featuredArticle.id} 
+                    initialIsBookmarked={bookmarkedIds.has(featuredArticle.id)}
+                    variant="secondary" 
+                  />
                 </div>
               </div>
-              <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                <BookmarkButton 
-                  articleId={featuredArticle.id} 
-                  initialIsBookmarked={bookmarkedIds.has(featuredArticle.id)}
-                  variant="secondary" 
-                />
-              </div>
             </div>
-          </div>
+          </Link>
         </section>
       )}
 
@@ -91,43 +102,48 @@ export default async function HomePage() {
         <section className="lg:col-span-2 space-y-6">
           <h2 className="text-2xl font-bold tracking-tight border-b pb-2">Latest News</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {latestArticles.map((article: any) => (
-              <Card key={article.id} className="flex flex-col h-full cursor-pointer group">
-                <div className="aspect-video w-full bg-light-gray overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img 
-                    src={article.image_url || `https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80`} 
-                    alt="Article thumbnail"
-                    className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-                <CardHeader className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge variant="secondary">{article.categories?.name || 'News'}</Badge>
-                    <div className="-mr-2 text-foreground/50 hover:text-primary-blue rounded-full">
-                      <BookmarkButton 
-                        articleId={article.id} 
-                        initialIsBookmarked={bookmarkedIds.has(article.id)}
-                        variant="ghost" 
-                      />
-                    </div>
+            {latestArticles.map((article: Article) => (
+              <Link key={article.id} href={`/article/${article.id}`}>
+                <Card className="flex flex-col h-full cursor-pointer group">
+                  <div className="aspect-video w-full bg-light-gray overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img 
+                      src={getImageUrl(article.image_url)} 
+                      alt={article.title}
+                      loading="lazy"
+                      className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+                    />
                   </div>
-                  <CardTitle className="group-hover:text-primary-blue transition-colors">
-                    {article.title}
-                  </CardTitle>
-                  <CardDescription className="mt-2">
-                    {article.summary}
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter className="flex items-center justify-between border-t pt-4">
-                  <span className="font-medium text-primary-blue">{article.sources?.name || 'Unknown'}</span>
-                  <span className="flex items-center text-xs"><Clock className="mr-1 h-3 w-3" /> {new Date(article.published_at).toLocaleDateString()}</span>
-                </CardFooter>
-              </Card>
+                  <CardHeader className="flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <Badge variant="secondary">{getName(article.categories) || 'News'}</Badge>
+                      <div className="-mr-2 text-foreground/50 hover:text-primary-blue rounded-full">
+                        <BookmarkButton 
+                          articleId={article.id} 
+                          initialIsBookmarked={bookmarkedIds.has(article.id)}
+                          variant="tertiary" 
+                        />
+                      </div>
+                    </div>
+                    <CardTitle className="group-hover:text-primary-blue transition-colors">
+                      {article.title}
+                    </CardTitle>
+                    <CardDescription className="mt-2">
+                      {article.summary}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardFooter className="flex items-center justify-between border-t pt-4">
+                    <span className="font-medium text-primary-blue">{getName(article.sources) || 'Unknown'}</span>
+                    <span className="flex items-center text-xs"><Clock className="mr-1 h-3 w-3" /> {new Date(article.published_at).toLocaleDateString()}</span>
+                  </CardFooter>
+                </Card>
+              </Link>
             ))}
           </div>
           <div className="pt-4 flex justify-center">
-            <Button variant="secondary" className="w-full sm:w-auto">Load More Articles</Button>
+            <Link href="/search">
+              <Button variant="secondary" className="w-full sm:w-auto">Load More Articles</Button>
+            </Link>
           </div>
         </section>
 
@@ -138,22 +154,24 @@ export default async function HomePage() {
             Trending Now
           </h2>
           <div className="flex flex-col space-y-4">
-            {trendingArticles.map((article: any, index: number) => (
-              <div key={article.id} className="flex space-x-4 group cursor-pointer">
-                <div className="text-3xl font-bold text-light-gray group-hover:text-primary-blue/20 transition-colors">
-                  0{index + 1}
-                </div>
-                <div className="space-y-1">
-                  <h4 className="font-semibold leading-tight group-hover:text-primary-blue transition-colors line-clamp-2">
-                    {article.title}
-                  </h4>
-                  <div className="flex items-center text-xs text-foreground/60 space-x-2">
-                    <span className="text-primary-blue font-medium">{article.sources?.name || 'Unknown'}</span>
-                    <span>•</span>
-                    <span>{new Date(article.published_at).toLocaleDateString()}</span>
+            {trendingArticles.map((article: Article, index: number) => (
+              <Link key={article.id} href={`/article/${article.id}`}>
+                <div className="flex space-x-4 group cursor-pointer">
+                  <div className="text-3xl font-bold text-light-gray group-hover:text-primary-blue/20 transition-colors">
+                    0{index + 1}
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-semibold leading-tight group-hover:text-primary-blue transition-colors line-clamp-2">
+                      {article.title}
+                    </h4>
+                    <div className="flex items-center text-xs text-foreground/60 space-x-2">
+                      <span className="text-primary-blue font-medium">{getName(article.sources) || 'Unknown'}</span>
+                      <span>•</span>
+                      <span>{new Date(article.published_at).toLocaleDateString()}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
 

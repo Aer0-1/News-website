@@ -5,7 +5,7 @@ import { Home, Compass, Bookmark, Clock, Settings } from "lucide-react"
 
 const navItems = [
   { icon: Home, label: "Home", href: "/" },
-  { icon: Compass, label: "Discover", href: "/discover" },
+  { icon: Compass, label: "Discover", href: "/search" },
   { icon: Bookmark, label: "Bookmarks", href: "/profile?tab=bookmarks" },
   { icon: Clock, label: "History", href: "/profile?tab=history" },
   { icon: Settings, label: "Preferences", href: "/profile?tab=preferences" },

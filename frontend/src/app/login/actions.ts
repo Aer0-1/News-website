@@ -7,15 +7,24 @@ import { createClient } from '@/utils/supabase/server'
 export async function login(formData: FormData) {
   const supabase = createClient()
 
-  const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+
+  // Validate inputs
+  if (!email || !email.includes('@')) {
+    redirect('/login?message=Please enter a valid email address')
+  }
+  if (!password || password.length < 6) {
+    redirect('/login?message=Password must be at least 6 characters')
   }
 
-  const { error } = await supabase.auth.signInWithPassword(data)
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
 
   if (error) {
-    redirect('/login?message=Could not authenticate user')
+    redirect(`/login?message=${encodeURIComponent(error.message)}`)
   }
 
   revalidatePath('/', 'layout')
@@ -25,24 +34,34 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const supabase = createClient()
 
-  const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-    options: {
-      data: {
-        full_name: formData.get('full_name') as string,
-      }
-    }
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+  const fullName = formData.get('full_name') as string
+
+  // Validate inputs
+  if (!email || !email.includes('@')) {
+    redirect('/login?mode=signup&message=Please enter a valid email address')
+  }
+  if (!password || password.length < 6) {
+    redirect('/login?mode=signup&message=Password must be at least 6 characters')
   }
 
-  const { error } = await supabase.auth.signUp(data)
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: fullName || '',
+      }
+    }
+  })
 
   if (error) {
-    redirect('/login?message=Could not sign up user')
+    redirect(`/login?mode=signup&message=${encodeURIComponent(error.message)}`)
   }
 
   revalidatePath('/', 'layout')
-  redirect('/login?message=Check email to continue sign in process')
+  redirect('/login?message=Check your email to continue sign in process')
 }
 
 export async function signout() {

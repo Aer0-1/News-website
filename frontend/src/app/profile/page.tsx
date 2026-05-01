@@ -7,6 +7,25 @@ import { createClient } from "@/utils/supabase/server"
 import { redirect } from "next/navigation"
 import { BookmarkButton } from "@/components/ui/BookmarkButton"
 import Link from "next/link"
+import { clearReadingHistory } from "@/app/actions/history"
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+interface SavedArticle {
+  id: string
+  title: string
+  category: string
+  source: string
+  savedDate: string
+}
+
+interface HistoryArticle {
+  id: string
+  title: string
+  category: string
+  source: string
+  readDate: string
+}
 
 export default async function ProfilePage({
   searchParams,
@@ -23,7 +42,7 @@ export default async function ProfilePage({
   }
 
   // Fetch Bookmarks
-  const { data: bookmarksData } = await supabase
+  const { data: bookmarksData, error: bookmarksError } = await supabase
     .from('bookmarks')
     .select(`
       article_id,
@@ -38,16 +57,23 @@ export default async function ProfilePage({
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
-  const savedArticles = bookmarksData?.map(b => ({
-    id: b.articles?.id,
-    title: b.articles?.title,
-    category: b.articles?.categories?.name || 'News',
-    source: b.articles?.sources?.name || 'Unknown',
-    savedDate: new Date(b.created_at).toLocaleDateString()
-  })) || []
+  if (bookmarksError) {
+    console.error('Error fetching bookmarks:', bookmarksError)
+  }
 
-  // Fetch History (assuming reading_history table exists, otherwise empty for now)
-  const { data: historyData } = await supabase
+  const savedArticles: SavedArticle[] = bookmarksData?.map((b: Record<string, unknown>) => {
+    const articles = b.articles as Record<string, unknown> | null
+    return {
+      id: (articles?.id as string) || '',
+      title: (articles?.title as string) || 'Untitled',
+      category: ((articles?.categories as Record<string, unknown> | null)?.name as string) || 'News',
+      source: ((articles?.sources as Record<string, unknown> | null)?.name as string) || 'Unknown',
+      savedDate: new Date(b.created_at as string).toLocaleDateString()
+    }
+  }) || []
+
+  // Fetch History
+  const { data: historyData, error: historyError } = await supabase
     .from('reading_history')
     .select(`
       article_id,
@@ -63,13 +89,20 @@ export default async function ProfilePage({
     .order('read_at', { ascending: false })
     .limit(20)
 
-  const historyArticles = historyData?.map(h => ({
-    id: h.articles?.id,
-    title: h.articles?.title,
-    category: h.articles?.categories?.name || 'News',
-    source: h.articles?.sources?.name || 'Unknown',
-    readDate: new Date(h.read_at).toLocaleString()
-  })) || []
+  if (historyError) {
+    console.error('Error fetching reading history:', historyError)
+  }
+
+  const historyArticles: HistoryArticle[] = historyData?.map((h: Record<string, unknown>) => {
+    const articles = h.articles as Record<string, unknown> | null
+    return {
+      id: (articles?.id as string) || '',
+      title: (articles?.title as string) || 'Untitled',
+      category: ((articles?.categories as Record<string, unknown> | null)?.name as string) || 'News',
+      source: ((articles?.sources as Record<string, unknown> | null)?.name as string) || 'Unknown',
+      readDate: new Date(h.read_at as string).toLocaleString()
+    }
+  }) || []
 
   const tabs = [
     { id: "bookmarks", label: "Bookmarks", icon: Bookmark },
@@ -134,14 +167,14 @@ export default async function ProfilePage({
             </div>
             {savedArticles.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {savedArticles.map((article: Record<string, unknown> & { id: string; title: string; category: string; source: string; savedDate: string }) => (
+                {savedArticles.map((article: SavedArticle) => (
                   <Link key={article.id} href={`/article/${article.id}`}>
                     <Card className="flex flex-col h-full group cursor-pointer hover:border-primary-blue/30">
                       <CardHeader>
                         <div className="flex justify-between items-start mb-2">
                           <Badge variant="secondary">{article.category}</Badge>
                           <div className="-mt-2 -mr-2 transition-colors">
-                            <BookmarkButton articleId={article.id} initialIsBookmarked={true} variant="ghost" />
+                            <BookmarkButton articleId={article.id} initialIsBookmarked={true} variant="tertiary" />
                           </div>
                         </div>
                         <CardTitle className="text-lg group-hover:text-primary-blue transition-colors leading-snug">
@@ -174,12 +207,16 @@ export default async function ProfilePage({
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
              <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold">Reading History</h2>
-              <Button variant="tertiary" size="sm" className="text-danger-red hover:bg-danger-red/10">
-                <Trash2 className="h-4 w-4 mr-2" /> Clear History
-              </Button>
+              {historyArticles.length > 0 && (
+                <form action={clearReadingHistory}>
+                  <Button type="submit" variant="tertiary" size="sm" className="text-danger-red hover:bg-danger-red/10">
+                    <Trash2 className="h-4 w-4 mr-2" /> Clear History
+                  </Button>
+                </form>
+              )}
             </div>
             <div className="space-y-4">
-              {historyArticles.length > 0 ? historyArticles.map((article: Record<string, unknown> & { id: string; title: string; source: string; readDate: string; duration: string }) => (
+              {historyArticles.length > 0 ? historyArticles.map((article: HistoryArticle) => (
                 <Link key={`${article.id}-${article.readDate}`} href={`/article/${article.id}`}>
                   <div className="flex items-center justify-between p-4 bg-white border rounded-xl hover:shadow-sm cursor-pointer transition-shadow">
                     <div className="flex items-center space-x-4">
