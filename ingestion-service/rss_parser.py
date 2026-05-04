@@ -8,11 +8,6 @@ from supabase import create_client, Client
 from datetime import datetime, timezone
 import dateutil.parser
 from textblob import TextBlob
-from sumy.parsers.html import HtmlParser
-from sumy.nlp.tokenizers import Tokenizer
-from sumy.summarizers.lsa import LsaSummarizer
-from sumy.nlp.stemmers import Stemmer
-from sumy.utils import get_stop_words
 
 # ─── Logging Setup ────────────────────────────────────────────────────────────
 
@@ -85,6 +80,32 @@ def article_exists(url):
         return bool(response.data)
     except Exception:
         return False
+
+def build_summary(content_html, url, plain_text, title):
+    """Build an article summary; gracefully fallback if NLP deps are unavailable."""
+    if not content_html:
+        return plain_text[:500] + '...' if len(plain_text) > 500 else plain_text
+
+    try:
+        from sumy.parsers.html import HtmlParser
+        from sumy.nlp.tokenizers import Tokenizer
+        from sumy.summarizers.lsa import LsaSummarizer
+        from sumy.nlp.stemmers import Stemmer
+        from sumy.utils import get_stop_words
+
+        parser = HtmlParser.from_string(content_html, url, Tokenizer("english"))
+        stemmer = Stemmer("english")
+        summarizer = LsaSummarizer(stemmer)
+        summarizer.stop_words = get_stop_words("english")
+
+        sentences = summarizer(parser.document, 2)
+        ai_summary = " ".join(str(s) for s in sentences)
+        if ai_summary:
+            return ai_summary
+    except Exception as e:
+        logger.warning(f"Summarization failed for '{title}': {e}")
+
+    return plain_text[:500] + '...' if len(plain_text) > 500 else plain_text
 
 # ─── Main Ingestion ──────────────────────────────────────────────────────────
 
@@ -162,22 +183,7 @@ def fetch_and_store_articles():
                     logger.warning(f"Sentiment analysis failed for '{title}': {e}")
 
             # 2. AI Summarization
-            ai_summary = ""
-            if content_html:
-                try:
-                    parser = HtmlParser.from_string(content_html, url, Tokenizer("english"))
-                    stemmer = Stemmer("english")
-                    summarizer = LsaSummarizer(stemmer)
-                    summarizer.stop_words = get_stop_words("english")
-                    
-                    sentences = summarizer(parser.document, 2)
-                    ai_summary = " ".join(str(s) for s in sentences)
-                except Exception as e:
-                    logger.warning(f"Summarization failed for '{title}': {e}")
-            
-            # Fallback if sumy fails or returns empty
-            if not ai_summary:
-                ai_summary = plain_text[:500] + '...' if len(plain_text) > 500 else plain_text
+            ai_summary = build_summary(content_html, url, plain_text, title)
             
             # Image extraction
             image_url = None

@@ -1,0 +1,4 @@
+# Local temp/cache artifacts
+frontend/.npm-cache/
+ingestion-service/__pycache__/
+ingestion-service/.tmp/
